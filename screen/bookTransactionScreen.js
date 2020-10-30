@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Stylesheet,
   TextInput,
-  Alert,
+  ToastAndroid,
+  KeyboardAvoidingView,
 } from "react-native";
 import * as Permissions from "expo-permissions";
 import { BarCodeScanner } from "expo-barcode-scanner";
@@ -88,7 +89,7 @@ export default class bookTransactionScreen extends Component {
       .update({
         booksIssued: firebase.firestore.FieldValue.increment(1),
       });
-    Alert.alert("Book Issued Successfully.");
+    ToastAndroid.show("Book Issued Successfully.", ToastAndroid.SHORT);
     this.setState({ studentID: "", bookID: "" });
   };
 
@@ -110,7 +111,7 @@ export default class bookTransactionScreen extends Component {
       .update({
         booksIssued: firebase.firestore.FieldValue.increment(-1),
       });
-    Alert.alert("Book Returned Successfully.");
+    ToastAndroid.show("Book Returned Successfully.", ToastAndroid.SHORT);
     this.setState({ studentID: "", bookID: "" });
   };
 
@@ -141,108 +142,137 @@ export default class bookTransactionScreen extends Component {
       );
     } else if (buttonState === "normal") {
       return (
-        <View>
-          <Text style={{ fontSize: 18, textAlign: "center", marginTop: 50 }}>
-            Issue or Return a book
-          </Text>
+        <KeyboardAvoidingView style={{ flex: 1 }} enabled>
+          <View style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Text style={{ fontSize: 18, textAlign: "center", marginTop: 50 }}>
+              Issue or Return a book
+            </Text>
 
-          <Image
-            source={require("../assets/booklogo.jpg")}
-            style={{
-              width: 250,
-              height: 250,
-              resizeMode: "contain",
-              alignSelf: "center",
-            }}
-          />
-
-          <View
-            style={{ marginLeft: 10, display: "flex", flexDirection: "row" }}
-          >
-            <TextInput
-              placeholder="Book ID"
-              value={this.state.bookID}
+            <Image
+              source={require("../assets/booklogo.jpg")}
               style={{
-                backgroundColor: "#C5CED4",
-                width: 225,
-                padding: 10,
-                marginTop: 50,
+                width: 250,
+                height: 250,
+                resizeMode: "contain",
+                alignSelf: "center",
               }}
-            ></TextInput>
+            />
+
+            <View
+              style={{
+                marginLeft: 10,
+                display: "flex",
+                flexDirection: "row",
+              }}
+            >
+              <TextInput
+                onChangeText={(txt) => {
+                  this.setState({ bookID: txt });
+                }}
+                editable={true}
+                placeholder="Book ID"
+                value={this.state.bookID}
+                style={{
+                  backgroundColor: "#C5CED4",
+                  width: 225,
+                  padding: 10,
+                  marginTop: 50,
+                }}
+              ></TextInput>
+
+              <TouchableOpacity
+                onPress={() => {
+                  this.getCameraPermission();
+                  setTimeout(() => {
+                    this.setState({
+                      buttonState: "clicked",
+                      buttonID: "bookID",
+                    });
+                  }, 10);
+                }}
+                style={{
+                  backgroundColor: "#1e1e1e",
+                  borderRadius: 6,
+                  marginTop: 50,
+                  width: 100,
+                  padding: 10,
+                  marginLeft: 5,
+                  alignSelf: "center",
+                }}
+              >
+                <Text style={{ textAlign: "center", color: "white" }}>
+                  SCAN
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={{
+                marginLeft: 10,
+                display: "flex",
+                flexDirection: "row",
+              }}
+            >
+              <TextInput
+                onChangeText={(txt) => {
+                  this.setState({ studentID: txt });
+                }}
+                editable={true}
+                value={this.state.studentID}
+                placeholder="Student ID"
+                style={{
+                  backgroundColor: "#C5CED4",
+                  width: 225,
+                  padding: 10,
+                  marginTop: 20,
+                }}
+              ></TextInput>
+
+              <TouchableOpacity
+                onPress={() => {
+                  this.getCameraPermission;
+                  setTimeout(() => {
+                    this.setState({
+                      buttonState: "clicked",
+                      buttonID: "studentID",
+                    });
+                  }, 10);
+                }}
+                style={{
+                  backgroundColor: "#1e1e1e",
+                  borderRadius: 6,
+                  marginTop: 20,
+                  width: 100,
+                  padding: 10,
+                  marginLeft: 5,
+                  alignSelf: "center",
+                }}
+              >
+                <Text style={{ textAlign: "center", color: "white" }}>
+                  SCAN
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
-              onPress={() => {
-                this.getCameraPermission();
-                setTimeout(() => {
-                  this.setState({ buttonState: "clicked", buttonID: "bookID" });
-                }, 10);
-              }}
+              onPress={this.handleTransaction}
               style={{
                 backgroundColor: "#1e1e1e",
                 borderRadius: 6,
-                marginTop: 50,
-                width: 100,
+                marginTop: 30,
+                width: 110,
                 padding: 10,
                 marginLeft: 5,
                 alignSelf: "center",
+                marginBottom: 20,
               }}
             >
-              <Text style={{ textAlign: "center", color: "white" }}>SCAN</Text>
+              <Text style={{ color: "white", textAlign: "center" }}>
+                SUBMIT
+              </Text>
             </TouchableOpacity>
           </View>
-
-          <View
-            style={{ marginLeft: 10, display: "flex", flexDirection: "row" }}
-          >
-            <TextInput
-              value={this.state.studentID}
-              placeholder="Student ID"
-              style={{
-                backgroundColor: "#C5CED4",
-                width: 225,
-                padding: 10,
-                marginTop: 20,
-              }}
-            ></TextInput>
-
-            <TouchableOpacity
-              onPress={() => {
-                this.getCameraPermission;
-                setTimeout(() => {
-                  this.setState({
-                    buttonState: "clicked",
-                    buttonID: "studentID",
-                  });
-                }, 10);
-              }}
-              style={{
-                backgroundColor: "#1e1e1e",
-                borderRadius: 6,
-                marginTop: 20,
-                width: 100,
-                padding: 10,
-                marginLeft: 5,
-                alignSelf: "center",
-              }}
-            >
-              <Text style={{ textAlign: "center", color: "white" }}>SCAN</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            onPress={this.handleTransaction}
-            style={{
-              backgroundColor: "#1e1e1e",
-              borderRadius: 6,
-              marginTop: 30,
-              width: 110,
-              padding: 10,
-              marginLeft: 5,
-              alignSelf: "center",
-            }}
-          >
-            <Text style={{ color: "white", textAlign: "center" }}>SUBMIT</Text>
-          </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
       );
     }
   }
