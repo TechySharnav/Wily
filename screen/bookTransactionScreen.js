@@ -8,6 +8,7 @@ import {
   TextInput,
   ToastAndroid,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import * as Permissions from "expo-permissions";
 import { BarCodeScanner } from "expo-barcode-scanner";
@@ -55,7 +56,8 @@ export default class bookTransactionScreen extends Component {
   handleTransaction = async () => {
     var message = "";
     console.log("HandleTransaction Called.");
-    db.collection("books")
+    {
+      /*db.collection("books")
       .doc(this.state.bookID)
       .get()
       .then((doc) => {
@@ -63,12 +65,97 @@ export default class bookTransactionScreen extends Component {
         if (book.bookAvailability) {
           this.initiateBookIssue();
           message = "Book Issued";
-        } else {
+        } else if (book.bookAvailability === false) {
           this.initiateBookReturn();
           message = "Book Returned";
         }
       });
-    this.setState({ transactionMsg: message });
+    this.setState({ transactionMsg: message });*/
+    }
+
+    var transactionType = await this.checkBookEligibility();
+
+    if (!transactionType) {
+      Alert.alert("Book doesn't Exist in Library");
+      this.setState({ bookID: "", studentID: "" });
+    } else if (transactionType === "issue") {
+      var studentEligibility = await this.checkStudentEligibilityforBookIssue();
+      if (studentEligibility === null) {
+        Alert.alert("Student Doesn't Exists");
+      } else if (studentEligibility === true) {
+        this.initiateBookIssue();
+      } else {
+        Alert.alert("Maxmimum Limit of Books Reached");
+      }
+    } else if (transactionType === "return") {
+      var studentEligibility = await this.checkStudentEligibilityforBookReturn();
+      studentEligibility
+        ? this.initiateBookReturn()
+        : Alert.alert("No Books Issued to student to return");
+    }
+  };
+
+  checkStudentEligibilityforBookReturn = async () => {
+    var bookRef = await db
+      .collection("transaction")
+      .where("bookID", "==", this.state.bookID)
+      .limit(1)
+      .get();
+
+    bookRef.docs.map((doc) => {
+      var bookData = doc.data();
+      if (bookData.studentID === this.state.studentID) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  };
+
+  checkStudentEligibilityforBookIssue = async () => {
+    var studentRef = await db
+      .collection("students")
+      .where("studentID", "==", this.state.studentID)
+      .get();
+    if (studentRef.docs.length === 0) {
+      this.setState({ bookID: "", studentID: "" });
+      return null;
+    } else {
+      studentRef.docs.map((doc) => {
+        var studentData = doc.data();
+        if (studentData.booksIssued === 2) {
+          this.setState({ bookID: "", studentID: "" });
+          return false;
+        } else {
+          return true;
+        }
+      });
+    }
+  };
+
+  checkBookEligibility = async () => {
+    console.log(this.state.bookID);
+    const bookRef = db
+      .collection("books")
+      .doc(this.state.bookID)
+      .where("bookID", "==", this.state.bookID)
+      .get()
+      .then(() => console.log(bookRef));
+
+    setTimeout(() => {
+      if (bookRef.docs.length === 0) {
+        return false;
+      } else {
+        bookRef.docs.map((doc) => {
+          var bookData = doc.data();
+          if (bookData.bookAvailability) {
+            return "issue";
+          } else {
+            return "return";
+          }
+        });
+      }
+    }, 100);
   };
 
   initiateBookIssue = async () => {
