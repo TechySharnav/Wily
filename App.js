@@ -1,45 +1,64 @@
-import React, { Component } from "react";
+import React from "react";
+import { StyleSheet, Text, View, Image } from "react-native";
+import { createAppContainer, createSwitchNavigator } from "react-navigation";
+import { createBottomTabNavigator } from "react-navigation-tabs";
+
 import SearchScreen from "./screen/SearchScreen";
 import bookTransactionScreen from "./screen/bookTransactionScreen";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer } from "@react-navigation/native";
-import { Image } from "react-native";
+import LoginScreen from "./screen/LoginScreen";
 
-const Tab = createBottomTabNavigator();
-
-export default class App extends Component {
+export default class App extends React.Component {
   render() {
-    return (
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            tabBarIcon: ({}) => {
-              let imgName;
-
-              if (route.name === "bookTransaction") {
-                imgName = require("./assets/book.png");
-              } else if (route.name === "SearchScreen") {
-                imgName = require("./assets/searchingbook.png");
-              }
-
-              // You can return any component that you like here!
-              return (
-                <Image style={{ width: 20, height: 20 }} source={imgName} />
-              );
-            },
-          })}
-          tabBarOptions={{
-            activeTintColor: "#ef4b4c",
-            inactiveTintColor: "#a9a9ab",
-          }}
-        >
-          <Tab.Screen
-            name="bookTransaction"
-            component={bookTransactionScreen}
-          />
-          <Tab.Screen name="SearchScreen" component={SearchScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
-    );
+    return <AppContainer />;
   }
 }
+
+const TabNavigator = createBottomTabNavigator(
+  {
+    Transaction: { screen: bookTransactionScreen },
+    Search: { screen: SearchScreen },
+  },
+  {
+    defaultNavigationOptions: ({ navigation }) => ({
+      tabBarIcon: () => {
+        const routeName = navigation.state.routeName;
+        console.log(routeName);
+        if (routeName === "Transaction") {
+          return (
+            <Image
+              source={require("./assets/book.png")}
+              style={{ width: 20, height: 20 }}
+            />
+          );
+        } else if (routeName === "Search") {
+          return (
+            <Image
+              source={require("./assets/searchingbook.png")}
+              style={{ width: 20, height: 20 }}
+            />
+          );
+        }
+      },
+    }),
+    tabBarOptions: {
+      activeTintColor: "#ef4b4c",
+      inactiveTintColor: "#a9a9ab",
+    },
+  }
+);
+
+const switchNavigator = createSwitchNavigator({
+  LoginScreen: { screen: LoginScreen },
+  TabNavigator: { screen: TabNavigator },
+});
+
+const AppContainer = createAppContainer(switchNavigator);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "red",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
