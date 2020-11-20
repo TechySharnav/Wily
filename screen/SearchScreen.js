@@ -22,23 +22,24 @@ export default class SearchScreen extends Component {
   };
 
   getAllTransactions = async (txt) => {
+    txt = txt === null ? null : txt.trim();
     if (txt === null) {
       var transactionRef = await db.collection("transaction").limit(10).get();
     } else if (txt[0].toUpperCase() + txt[1].toUpperCase() === "ST") {
+      this.setState({ allTransactions: [] });
       var transactionRef = await db
         .collection("transaction")
-        .where("studentID", "==", txt)
+        .where("studentID", "<=", txt)
         .limit(10)
         .get();
-    } else {
+    } else if (txt[0].toUpperCase() + txt[1].toUpperCase() !== "ST") {
+      this.setState({ allTransactions: [] });
       var transactionRef = await db
         .collection("transaction")
-        .where(bookID, "==", txt)
+        .where("bookID", "==", txt.trim())
         .limit(10)
         .get();
     }
-
-    this.setState({ allTransactions: [] });
 
     transactionRef.docs.map(async (doc) => {
       this.setState({
@@ -78,11 +79,11 @@ export default class SearchScreen extends Component {
             backgroundColor: "transparent",
             borderWidth: 0,
           }}
-          round={true}
-          placeholder="Type Here..."
+          round={false}
+          placeholder="Enter Student/Book ID"
           onChangeText={async (txt) => (
-            this.setState({ searchTxt: txt.trim() }),
-            await this.getAllTransactions(txt)
+            this.setState({ searchTxt: txt.trim(), allTransactions: [] }),
+            await this.getAllTransactions(txt.trim())
           )}
           value={this.state.searchTxt}
           lightTheme={true}
@@ -95,10 +96,22 @@ export default class SearchScreen extends Component {
           inputStyle={{ padding: -10 }}
         />
         <FlatList
+          contentContainerStyle={{ paddingBottom: 40 }}
           data={this.state.allTransactions}
           renderItem={({ item }) => (
-            <View style={{ marginTop: 10 }}>
-              <Text>{"BookID:" + item.bookID}</Text>
+            <View
+              style={{
+                backgroundColor: "#e8e8e8",
+                marginTop: 10,
+                marginLeft: 10,
+                padding: 10,
+                fontSize: 18,
+                width: "95%",
+                borderColor: "#8e8e8e",
+                borderWidth: 2,
+              }}
+            >
+              <Text>BookID : {item.bookID}</Text>
               <Text>StudentID: {item.studentID}</Text>
               <Text>Transaction Type: {item.transactionType}</Text>
             </View>
